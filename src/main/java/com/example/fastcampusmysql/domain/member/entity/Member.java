@@ -2,6 +2,7 @@ package com.example.fastcampusmysql.domain.member.entity;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.util.Assert;
 
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
+@ToString
 public class Member {
     final private static Long NAME_MAX_LENGTH = 10L;
 
@@ -34,7 +36,13 @@ public class Member {
         this.createdAt = createdAt == null ? LocalDateTime.now() : createdAt;
     }
 
-    void validateNickname(String nickname) {
+    public void changeNickname(String to) {
+        Objects.requireNonNull(to);
+        validateNickname(to);
+        nickname = to;
+    }
+
+    private void validateNickname(String nickname) {
         Assert.isTrue(nickname.length() <= NAME_MAX_LENGTH, "닉네임은 10자 이하로 입력해주세요.");
     }
 

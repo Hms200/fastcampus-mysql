@@ -74,6 +74,9 @@ public class MemberRepository {
         *   parameter - member
         *   return - id를 포함한 member
         * */
+        var sql = String.format("UPDATE %s SET email = :email, nickname = :nickname, birthday = :birthday WHERE id = :id", TABLE );
+        SqlParameterSource param = new BeanPropertySqlParameterSource(member);
+        jdbcTemplate.update(sql, param);
         return member;
     }
 
