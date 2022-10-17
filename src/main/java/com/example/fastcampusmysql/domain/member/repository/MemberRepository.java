@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.swing.text.html.Option;
 import java.sql.ResultSet;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -20,13 +21,7 @@ public class MemberRepository {
     static private final String TABLE = "member";
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public Optional<Member> findById(Long id) {
-        /*
-        * select * from member where id = :id
-        * */
-        String sql = String.format("SELECT * FROM %s WHERE id = :id", TABLE);
-        var param = new MapSqlParameterSource().addValue("id", id);
-        RowMapper<Member> rowMapper = (ResultSet resultSet, int rowNum) ->
+    static final RowMapper<Member> rowMapper = (ResultSet resultSet, int rowNum) ->
             Member.builder()
                     .id(resultSet.getLong("id"))
                     .email(resultSet.getString("email"))
@@ -35,8 +30,25 @@ public class MemberRepository {
                     .createdAt(resultSet.getTimestamp("createdAt").toLocalDateTime())
                     .build();
 
+    public Optional<Member> findById(Long id) {
+        /*
+        * select * from member where id = :id
+        * */
+        String sql = String.format("SELECT * FROM %s WHERE id = :id", TABLE);
+        var param = new MapSqlParameterSource().addValue("id", id);
+
             var member = jdbcTemplate.queryForObject(sql, param, rowMapper);
             return Optional.ofNullable(member);
+    }
+
+    public List<Member> findAllByIdIn(List<Long> ids) {
+        // 빈 리스트일 때 비어있는 리스트를 그대로 리턴. sql grammar error 방지
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        var sql = String.format("SELECT * FROM %s WHERE id IN (:ids)", TABLE);
+        var param = new MapSqlParameterSource().addValue("ids", ids);
+        return jdbcTemplate.query(sql, param, rowMapper);
     }
 
     public Member save(Member member) {

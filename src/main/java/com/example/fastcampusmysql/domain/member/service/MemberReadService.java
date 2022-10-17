@@ -47,5 +47,10 @@ public class MemberReadService {
         );
     }
 
+    public List<MemberDto> getMembers(List<Long> ids) {
+        var members = memberRepository.findAllByIdIn(ids);
+        return members.stream().map(this::toDto).toList();
+    }
+
 
 }
