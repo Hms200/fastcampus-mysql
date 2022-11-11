@@ -18,16 +18,16 @@ import java.util.List;
 @Repository
 public class PostRepository {
 
-    static final String TABLE = "post";
+    static final String TABLE = "POST";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final static RowMapper<DailyPostCount> DAILY_POST_COUNT_ROW_MAPPER = (rs, rowNum) ->
             new DailyPostCount(
-            rs.getLong("memberId"),
-            rs.getObject("createdDate", LocalDate.class),
-            rs.getLong("count")
-    );
+                    rs.getLong("memberId"),
+                    rs.getObject("createdDate", LocalDate.class),
+                    rs.getLong("count")
+            );
 
     public Post Save(Post post) {
         if (post.getId() == null) {
@@ -64,5 +64,16 @@ public class PostRepository {
         return jdbcTemplate.query(String.format(sql, TABLE), params, DAILY_POST_COUNT_ROW_MAPPER);
 
     }
-    
+
+    public void bulkInsert(List<Post> posts) {
+        var sql = """
+                insert into %s (memberId, contents, createdDate, createdAt)
+                values (:memberId, :contents, :createdDate, :createdAt)
+                """;
+        SqlParameterSource[] params = posts.stream()
+                .map(BeanPropertySqlParameterSource::new)
+                .toArray(SqlParameterSource[]::new);
+        jdbcTemplate.batchUpdate(String.format(sql, TABLE), params);
+    }
+
 }
